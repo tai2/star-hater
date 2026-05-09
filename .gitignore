@@ -1,0 +1,15 @@
+node_modules/
+
+.wxt/
+.output/
+
+*.zip
+coverage/
+
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+.env
+.env.local
