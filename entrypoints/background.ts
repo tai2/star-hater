@@ -1,9 +1,28 @@
-// Emitted as background.service_worker on Chrome MV3 and background.scripts
-// (event page) on Firefox MV3. Treat as a service worker on both: do not store
-// state in module-level variables (use browser.storage.session) and register
-// listeners synchronously at the top level so they survive SW restart.
+import { broadcastRulesUpdated } from "@/src/rules/messaging-bg";
+import { syncDynamicContentScripts } from "@/src/rules/dynamic-scripts";
+
 export default defineBackground(() => {
-  browser.runtime.onInstalled.addListener((details) => {
+  browser.runtime.onInstalled.addListener(async (details) => {
     console.log("[star-hater] installed", details.reason);
+    if (details.reason === "install") {
+      await storage.setItem("sync:presetOverrides", {});
+      await storage.setItem("sync:userRules", []);
+    }
+    await syncDynamicContentScripts();
+  });
+
+  storage.watch("sync:userRules", () => {
+    void syncDynamicContentScripts();
+    void broadcastRulesUpdated();
+  });
+  storage.watch("sync:presetOverrides", () => {
+    void broadcastRulesUpdated();
+  });
+
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "REGISTER_USER_HOST") {
+      return syncDynamicContentScripts();
+    }
+    return undefined;
   });
 });
