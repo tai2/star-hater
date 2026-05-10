@@ -1,8 +1,14 @@
-// Default-disabled placeholder. Narrow `matches` to specific hosts before
-// enabling — <all_urls> triggers a strong install-time warning on both browsers.
+import { runRuleEngine } from "@/src/rules/engine";
+
 export default defineContentScript({
-  matches: ["https://example.com/*"],
-  main() {
-    console.log("[star-hater] content script alive");
+  matches: [
+    "https://github.com/*",
+    "https://gitlab.com/*",
+    "https://x.com/*",
+    "https://twitter.com/*",
+  ],
+  runAt: "document_start",
+  async main(ctx) {
+    await runRuleEngine(ctx);
   },
 });
